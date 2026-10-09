@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreePythonCamp: Курс Python в одном файле</title>
+    <style>
+        :root {
+            --bg: #1e1e1e;
+            --sidebar: #252526;
+            --text: #d4d4d4;
+            --accent: #007acc;
+            --success: #378c3d;
+            --border: #333;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 280px;
+            background-color: var(--sidebar);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        #sidebar h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .module {
+            margin-bottom: 20px;
+        }
+        .module-title {
+            font-weight: bold;
+            color: #ccc;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .module-title:hover {
+            background-color: #333;
+        }
+        .lesson {
+            padding-left: 15px;
+            color: #9cdcfe;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        .lesson.active {
+            background-color: var(--accent);
+            color: #fff;
+        }
+        #main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #lesson-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #lesson-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        #challenge-area {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        #instructions {
+            flex-basis: 50%;
+            overflow-y: auto;
+            padding: 20px;
+            line-height: 1.6;
+            border-right: 1px solid var(--border);
+        }
+        #editor-container {
+            flex-basis: 50%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #code-editor {
+            flex-grow: 1;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 15px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            resize: none;
+        }
+        #console {
+            height: 150px;
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Consolas', monospace;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+        }
+        #controls {
+            padding: 10px 20px;
+            background-color: #2d2d2d;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button#run-code {
+            background-color: #378c3d;
+        }
+        button#run-code:hover {
+            background-color: #2a6a2f;
+        }
+        .hidden { display: none; }
+        pre { background-color: #111; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        code { color: #ce9178; }
+        .user-input { color: #569cd6; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Учебный план</h2>
+    <div class="module">
+        <div class="module-title" onclick="toggleModule(0)">1. Основы Python</div>
+        <div id="module-0" class="lessons">
+            <div class="lesson" data-lesson="0" onclick="loadLesson(0)">0. Привет, мир!</div>
+            <div class="lesson" data-lesson="1" onclick="loadLesson(1)">1. Переменные и типы данных</div>
+            <div class="lesson" data-lesson="2" onclick="loadLesson(2)">2. Ввод и вывод</div>
+        </div>
+    </div>
+    <div class="module">
+        <div class="module-title" onclick="toggleModule(1)">2. Управление потоком</div>
+        <div id="module-1" class="lessons hidden">
+            <div class="lesson" data-lesson="3" onclick="loadLesson(3)">3. Условные операторы (if/else)</div>
+            <div class="lesson" data-lesson="4" onclick="loadLesson(4)">4. Циклы (for, while)</div>
+        </div>
+    </div>
+    <div class="module">
+        <div class="module-title" onclick="toggleModule(2)">3. Структуры данных</div>
+        <div id="module-2" class="lessons hidden">
+            <div class="lesson" data-lesson="5" onclick="loadLesson(5)">5. Списки и кортежи</div>
+            <div class="lesson" data-lesson="6" onclick="loadLesson(6)">6. Словари</div>
+        </div>
+    </div>
+</div>
+
+<div id="main-content">
+    <div id="lesson-header">
+        <div id="lesson-title">Загрузка...</div>
+        <div id="progress">Урок 1 из 6</div>
+    </div>
+    <div id="challenge-area">
+        <div id="instructions">
+            <h3>Задание:</h3>
+            <p id="task-text">Загрузка инструкций...</p>
+            <h3>Пример:</h3>
+            <pre id="example-code"></pre>
+        </div>
+        <div id="editor-container">
+            <textarea id="code-editor"># Твой код здесь
+print("Hello, World!")</textarea>
+            <div id="console">Консоль вывода...</div>
+        </div>
+    </div>
+    <div id="controls">
+        <button id="run-code">Выполнить код</button>
+        <button id="check-solution">Проверить решение</button>
+        <button id="hint-btn">Подсказка</button>
+        <button id="next-btn" style="margin-left: auto;">Следующий урок &rarr;</button>
+    </div>
+</div>
+
+<!-- Подключение Pyodide (интерпретатор Python в браузере) -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+
+<script>
+// === БАЗА ДАННЫХ УРОКОВ ===
+const lessons = [
+    {
+        id: 0, title: "Привет, мир!", 
+        task: "Напишите программу, которая выводит на экран фразу 'Привет, FreePythonCamp!'", 
+        example: 'print("Привет, FreePythonCamp!")',
+        solution: 'print("Привет, FreePythonCamp!")',
+        hint: "Используйте встроенную функцию print()."
+    },
+    {
+        id: 1, title: "Переменные и типы данных", 
+        task: "Создайте переменную name со своим именем и переменную age со своим возрастом. Выведите их на экран одной строкой.", 
+        example: 'name = "Алексей"\nage = 25\nprint(f"Привет, меня зовут {name} и мне {age} лет.")',
+        solution: 'name = "Алексей"\nage = 25\nprint(f"Привет, меня зовут {name} и мне {age} лет.")',
+        hint: "Используйте f-строки для форматирования вывода."
+    },
+    {
+        id: 2, title: "Ввод и вывод", 
+        task: "Спросите пользователя, как его зовут, сохраните ответ в переменную и поприветствуйте его.", 
+        example: 'user_name = input("Введите ваше имя: ")\nprint(f"Рад познакомиться, {user_name}!")',
+        solution: 'user_name = input("Введите ваше имя: ")\nprint(f"Рад познакомиться, {user_name}!")',
+        hint: "Для получения данных от пользователя нужна функция input()."
+    },
+    {
+        id: 3, title: "Условные операторы", 
+        task: "Напишите программу, которая спрашивает число. Если число больше 10, выведите 'Много', иначе выведите 'Мало'.", 
+        example: 'num = int(input("Введите число: "))\nif num > 10:\n    print("Много")\nelse:\n    print("Мало")',
+        solution: 'num = int(input("Введите число: "))\nif num > 10:\n    print("Много")\nelse:\n    print("Мало")',
+        hint: "Не забудьте преобразовать строку из input() в число через int()."
+    },
+    {
+        id: 4, title: "Циклы", 
+        task: "Выведите на экран числа от 1 до 5 с помощью цикла for.", 
+        example: 'for i in range(1, 6):\n    print(i)',
+        solution: 'for i in range(1, 6):\n    print(i)',
+        hint: "Функция range(1, 6) создаст числа от 1 до 5."
+    },
+    {
+        id: 5, title: "Списки", 
+        task: "Создайте список из трех любимых фруктов и выведите второй фрукт из списка.", 
+        example: 'fruits = ["яблоко", "банан", "груша"]\nprint(fruits[1])',
+        solution: 'fruits = ["яблоко", "банан", "груша"]\nprint(fruits[1])',
+        hint: "Индексация в Python начинается с нуля."
+    },
+    {
+        id: 6, title: "Словари", 
+        task: "Создайте словарь с данными о себе (имя, возраст, город) и выведите значение по ключу 'имя'.", 
+        example: 'me = {"имя": "Алексей", "возраст": 25, "город": "Москва"}\nprint(me["имя"])',
+        solution: 'me = {"имя": "Алексей", "возраст": 25, "город": "Москва"}\nprint(me["имя"])',
+        hint: "Доступ к значению в словаре осуществляется через квадратные скобки и ключ."
+    }
+];
+
+// === ЛОГИКА ПРИЛОЖЕНИЯ ===
+let currentLesson = 0;
+let pyodide = null;
+
+// Загрузка Pyodide
+async function loadPyodideAndPackages() {
+    pyodide = await loadPyodide();
+    // В Pyodide можно устанавливать пакеты через micropip, если они понадобятся
+    // await pyodide.loadPackage("micropip");
+    // const micropip = pyodide.pyimport("micropip");
+    // await micropip.install('requests');
+}
+
+// Навигация
+function toggleModule(index) {
+    const el = document.getElementById(`module-${index}`);
+    el.classList.toggle('hidden');
+}
+
+function loadLesson(index) {
+    currentLesson = index;
+    renderLesson();
+}
+
+function renderLesson() {
+    const lesson = lessons[currentLesson];
+    document.getElementById('lesson-title').innerText = lesson.title;
+    document.getElementById('task-text').innerText = lesson.task;
+    document.getElementById('example-code').innerText = lesson.example;
+    document.getElementById('progress').innerText = `Урок ${currentLesson + 1} из ${lessons.length}`;
+    
+    // Обновляем активные классы в сайдбаре
+    document.querySelectorAll('.lesson').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.lesson[data-lesson="${currentLesson}"]`).classList.add('active');
+    
+    // Сбрасываем код под пример
+    document.getElementById('code-editor').value = lesson.example;
+    document.getElementById('console').innerText = "";
+}
+
+// Выполнение кода
+async function runCode() {
+    const consoleEl = document.getElementById('console');
+    consoleEl.innerText = "Выполнение...\n";
+    
+    if (!pyodide) {
+        consoleEl.innerText = "Загрузка интерпретатора...";
+        await loadPyodideAndPackages();
+    }
+
+    const code = document.getElementById('code-editor').value;
+    
+    try {
+        // Перехват вывода print
+        let stdout = "";
+        pyodide.runPython(`
+import sys
+from io import StringIO
+old_stdout = sys.stdout
+sys.stdout = new_out = StringIO()
+${code}
+sys.stdout = old_stdout
+output = new_out.getvalue()
+        `);
+        
+        stdout = pyodide.globals.get("output");
+        consoleEl.innerText += stdout;
+        
+    } catch (err) {
+        consoleEl.innerText += "Ошибка:\n" + err.message;
+    }
+}
+
+// Проверка решения
+function checkSolution() {
+    const userCode = document.getElementById('code-editor').value.trim();
+    const solution = lessons[currentLesson].solution.trim();
+    
+    // Простейшая проверка (в реальном проекте здесь был бы сложный парсер AST)
+    if (userCode === solution) {
+        alert("Отлично! Решение верное.");
+    } else {
+        alert("Решение неверное или неполное. Попробуйте еще раз.");
+    }
+}
+
+// Обработка ввода пользователя (для уроков с input)
+// ВНИМАНИЕ: input() в Pyodide работает через модальное окно браузера (prompt), 
+// а не через консоль. Это ограничение WebAssembly.
+// Для полноценного эмулятора терминала нужен iframe или сложный Canvas.
+
+document.getElementById('run-code').addEventListener('click', runCode);
+document.getElementById('check-solution').addEventListener('click', checkSolution);
+document.getElementById('hint-btn').addEventListener('click', () => alert(lessons[currentLesson].hint));
+document.getElementById('next-btn').addEventListener('click', () => {
+    if (currentLesson < lessons.length - 1) {
+        loadLesson(currentLesson + 1);
+    } else {
+        alert("Поздравляем! Вы прошли базовый курс!");
+    }
+});
+
+// Инициализация
+renderLesson();
+</script>
+
+</body>
+</html>
